@@ -37,3 +37,10 @@ To cover this requirements, we designed the system like on the image below, and 
 | 7           | The Robot Arm Controller shall sort the cubes by colour  |   2    |
 | 8           | The Robot Arm Controller shall control the robot arm in the simulation  |   3    |
 | 9           | The Robot Arm Controller shall move the cubes to the sorted position  |   2    |
+
+## Video
+
+We made a video about the operation of the robot arm.
+
+[![IMAGE ALT TEXT HERE](https://img.youtube.com/vi/l6i5513F12M/0.jpg)](https://www.youtube.com/watch?v=l6i5513F12M)
+

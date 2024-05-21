@@ -7,6 +7,9 @@ from cv_bridge import CvBridge, CvBridgeError
 import cv2
 import numpy as np
 
+import io, json, os
+
+
 
 def camera_to_coordinate(coordinates):
      x = (121-coordinates[1])/150+0.5
@@ -43,6 +46,7 @@ class ImageSubscriber:
                 cv2.rectangle(I, (0, 0),     (320, 30), black_color, thickness)
                 cv2.rectangle(I, (0, 30), (50, 240), black_color, thickness)
                 cv2.rectangle(I, (270, 30), (320, 240), black_color, thickness)
+                cv2.rectangle(I, (80, 35),     (120, 65), black_color, thickness)
 
                 I_green = I.copy()
                 I_green[:, :, 0] = 0
@@ -113,6 +117,10 @@ class ImageSubscriber:
                     cubes[color] = points
                 self.process_image = False
                 rospy.loginfo(cubes)
+                json_path = os.path.dirname(os.path.abspath(__file__)) + '/position.json'
+                with io.open(json_path, 'w', encoding='utf-8') as f:
+                    f.write(json.dumps(cubes, ensure_ascii=False))
+
             except CvBridgeError as e:
                 rospy.logerr(e)
 

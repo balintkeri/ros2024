@@ -9,6 +9,9 @@ from moveit_commander.conversions import pose_to_list
 import geometry_msgs.msg
 from trajectory_msgs.msg import JointTrajectoryPoint, JointTrajectory
 
+import json
+import os
+
 import inverse_kinematics
 import detect_contacts
 import attach
@@ -114,8 +117,8 @@ class MoveGroupPythonInteface(object):
         joint_goal[1] = 0.038
       else:
         self.gazebo_trajectory_point.positions = [0.0]
-        joint_goal[0] = 0.01
-        joint_goal[1] = 0.01
+        joint_goal[0] = 0.015
+        joint_goal[1] = 0.015
 
 
       self.gripper_group.go(joint_goal, wait=True)
@@ -240,42 +243,73 @@ def main():
     moveit_commander.move_group.set_goal_position_tolerance(0.05)
     moveit_commander.move_group.set_goal_orientation_tolerance(0.1)
 
-    time.sleep(2)
-    place_dict = {"red": [0.5, 0, 0.065], "green": [0.4, -0.2,  0.065]}
 
+    time.sleep(2)
+    json_path = os.path.dirname(os.path.abspath(__file__)) + '/position.json'
+    with open(json_path, 'r') as file:
+      place_dict = json.load(file)
+      
     for key in place_dict:
     #joint_values = moveit_commander.get_joint_values()
+      if key == "red":
+        target = "red_box"
+        target_pos1 = [0.00001, -0.55, 0.065]
+        target_pos2 = [0.00001, -0.55, 0.15]
+      elif key == "green":
+        target = "green_box"
+        target_pos1 = [0.1, -0.55, 0.065]
+        target_pos2 = [0.1, -0.55, 0.15]
 
-      joint_angles = inverse_kinematics.inverse_kinematics(place_dict[key], "open", 0)
-      print("###JOINT ANGLES###")
-      print(joint_angles)
-      moveit_commander.set_gripper("open")
-
-      input("============ Press `Enter` to go to X,Y,Z coordinates...")
-      moveit_commander.go_to_joint_angles(joint_angles)
-
-      input("============ Press `Enter` to close gripper...")
-      moveit_commander.set_gripper("closed")
-
-      if(detect_contacts.check_for_contact()):
-        print("### Contact Detected ###")
-        attach.attach_left_finger("red box")
+      elif key == "blue":
+        target = "blue_box"
+        target_pos1 = [0.2, -0.55, 0.065]
+        target_pos2 = [0.2, -0.55, 0.15]
       
-      moveit_commander.go_to_named_target("home")
+      box_count = 1
 
-      ###the target position
-      joint_angles = inverse_kinematics.inverse_kinematics([0.00001, -0.5, 0.05], "open", 0)
-      print("###JOINT ANGLES###")
-      print(joint_angles)
-      input("============ Press `Enter` to go to X,Y,Z coordinates...")
-      moveit_commander.go_to_joint_angles(joint_angles)
-      detach.detach_left_finger("red box")
-      joint_angles = inverse_kinematics.inverse_kinematics([0.00001, -0.5, 0.15], "open", 0)
-      moveit_commander.go_to_joint_angles(joint_angles)
+      for box in place_dict[key]:
+        box.append(0.065)
+        print("### NEXT TARGET COORDINATES: ###")
+        print(box)
+        if box_count != 1:
+          target_pos1[1] = target_pos1[1] + 0.1
+          target_pos2[1] = target_pos2[1] + 0.1
+        modified_target_list = box.copy()
+        modified_target_list[2] = modified_target_list[2]+0.085
+        joint_angles = inverse_kinematics.inverse_kinematics(modified_target_list, "open", 0)
+        moveit_commander.set_gripper("open")
+        #input("============ Press `Enter` to go to X,Y,Z coordinates...")
+        moveit_commander.go_to_joint_angles(joint_angles)
 
-      input("============ Press `Enter` to open gripper and go to home...")
-      moveit_commander.set_gripper("open")
-      moveit_commander.go_to_named_target("home")
+        print("PLACE DICT:")
+        print(box)
+        joint_angles = inverse_kinematics.inverse_kinematics(box, "open", 0)
+        print("###JOINT ANGLES###")
+        print(joint_angles)
+
+        moveit_commander.go_to_joint_angles(joint_angles)
+        moveit_commander.set_gripper("closed")
+
+        attach.attach_left_finger(target + "_" + str(box_count))
+        
+        moveit_commander.go_to_named_target("home")
+
+        ###the target position
+        print("###SORTING TARGET POSITION: ###")
+        print(target_pos1)
+        joint_angles = inverse_kinematics.inverse_kinematics(target_pos1, "open", 0)
+        print("###JOINT ANGLES###")
+        print(joint_angles)
+        moveit_commander.go_to_joint_angles(joint_angles)
+        detach.detach_left_finger(target + "_" + str(box_count))
+        moveit_commander.set_gripper("open")
+        joint_angles = inverse_kinematics.inverse_kinematics(target_pos2, "open", 0)
+        moveit_commander.go_to_joint_angles(joint_angles)
+
+        moveit_commander.set_gripper("open")
+        moveit_commander.go_to_named_target("home")
+
+        box_count = box_count + 1
 
 
     """

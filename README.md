@@ -30,13 +30,15 @@ To cover this requirements, we designed the system like on the image below, and 
 
 | Requirement ID          | Description | Which System Requirement will this cover ? |
 | ----------- | ----------- | -------------|
-| 3           | The Camera Controller shall detect cubes | 1 |
-| 4           | The Camera Controller shall detech the colour of the given cube |  2  |
-| 5           | The Camera Controller shall calculate the coordinates of cubes|   2    |
-| 6           | The Camera Controller shall send the coordinate and the colour of the cubes to the Robot Arm Controller |      |
-| 7           | The Robot Arm Controller shall sort the cubes by colour  |   2    |
-| 8           | The Robot Arm Controller shall control the robot arm in the simulation  |   3    |
-| 9           | The Robot Arm Controller shall move the cubes to the sorted position  |   2    |
+| 4          | The Camera Controller shall detect cubes | 1 |
+| 5           | The Camera Controller shall detech the colour of the given cube |  2  |
+| 6           | The Camera Controller shall calculate the coordinates of cubes|   2    |
+| 7           | The Camera Controller shall send the coordinate and the colour of the cubes to the Robot Arm Controller |      |
+| 12           | The Camera Controller shall receive the camera's signal |      |
+| 8           | The Robot Arm Controller shall caculate the position of the unmoved cubes  |   3    |
+| 9           | The Robot Arm Controller shall caculate the position of the sorted cubes  |   2    |
+| 10           | The Robot Arm Controller shall control the robot arm in the simulation  |   3    |
+| 11           | The Robot Arm Controller shall calculate the track of the cubes  |   2    |
 
 ## Video
 

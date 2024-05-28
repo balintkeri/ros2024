@@ -61,3 +61,81 @@ After this we applyed a threshold for the RGB colors to get the objects to move 
 ![image](https://github.com/balintkeri/ros2024/assets/52506432/30fdae48-0f10-4132-963c-f7c2fa28dd24)
 
 The camera controller transforms the centre point of the BLOBS (in pixels) to coordinates (in the Gazeboo world) with a linear interpolation. The parameters is determined by empiric methods. The camera controllers sends those coordinates to the robot arm controller
+
+## The Robot Arm
+
+We used the same robot arm as we used in the classes. The only difference is that we use the 6 DoF version of it with the virtual joints, so that Moveit can handle the arm.
+
+## The robot Arm Controller
+
+The starting point for the commander script was the ur_moveit_commander.py, the same as the example for Moveit that we used during the classes. First, the script collects the data from the json file created by the camera controller.
+
+'''python
+#open the json file and store the data
+json_path = os.path.dirname(os.path.abspath(__file__)) + '/position.json'
+with open(json_path, 'r') as file:
+  place_dict = json.load(file)
+'''
+
+Then it iterates through the colors, and calculating the starting target position for each color
+
+'''python
+for key in place_dict:
+  #determining target positions based on the color key
+  if key == "red":
+    target = "red_box"
+    target_pos1 = [0.00001, -0.55, 0.065]
+    target_pos2 = [0.00001, -0.55, 0.15]
+  elif key == "green":
+    target = "green_box"
+    target_pos1 = [0.1, -0.55, 0.065]
+    target_pos2 = [0.1, -0.55, 0.15]
+
+  elif key == "blue":
+    target = "blue_box"
+    target_pos1 = [0.2, -0.55, 0.065]
+    target_pos2 = [0.2, -0.55, 0.15]
+  
+box_count = 1
+'''
+
+Then, it iterates through each object in each color. First, calculating the joint angles needed to reach the object, then moves the robot arm above the object so that it does not collide with anything on the table. It goes down, picks up the objects and attaches it to the gripper. To avoid any further collisons, it moves to the home position, before moving to the previously calculated target position. Then it detaches the objects, lifts the gripper up and again returns to the home position. Then this cycle is repeated until all the objects are sorted.
+
+'''python
+modified_target_list = box.copy()
+modified_target_list[2] = modified_target_list[2]+0.085
+
+#calculating the joint angles needed to raach the object
+joint_angles = inverse_kinematics.inverse_kinematics(modified_target_list, "open", 0)
+moveit_commander.set_gripper("open")
+moveit_commander.go_to_joint_angles(joint_angles)
+
+joint_angles = inverse_kinematics.inverse_kinematics(box, "open", 0)
+print("###JOINT ANGLES###")
+print(joint_angles)
+
+moveit_commander.go_to_joint_angles(joint_angles)
+moveit_commander.set_gripper("closed")
+
+#attaching the object to the gripper
+attach.attach_left_finger(target + "_" + str(box_count))
+
+moveit_commander.go_to_named_target("home")
+
+#the target position
+print("###SORTING TARGET POSITION: ###")
+print(target_pos1)
+joint_angles = inverse_kinematics.inverse_kinematics(target_pos1, "open", 0)
+print("###JOINT ANGLES###")
+print(joint_angles)
+moveit_commander.go_to_joint_angles(joint_angles)
+detach.detach_left_finger(target + "_" + str(box_count))
+moveit_commander.set_gripper("open")
+joint_angles = inverse_kinematics.inverse_kinematics(target_pos2, "open", 0)
+moveit_commander.go_to_joint_angles(joint_angles)
+
+moveit_commander.set_gripper("open")
+moveit_commander.go_to_named_target("home")
+
+box_count = box_count + 1
+'''

@@ -70,16 +70,16 @@ We used the same robot arm as we used in the classes. The only difference is tha
 
 The starting point for the commander script was the ur_moveit_commander.py, the same as the example for Moveit that we used during the classes. First, the script collects the data from the json file created by the camera controller.
 
-'''python
+```python
 #open the json file and store the data
 json_path = os.path.dirname(os.path.abspath(__file__)) + '/position.json'
 with open(json_path, 'r') as file:
   place_dict = json.load(file)
-'''
+```
 
 Then it iterates through the colors, and calculating the starting target position for each color
 
-'''python
+```python
 for key in place_dict:
   #determining target positions based on the color key
   if key == "red":
@@ -97,11 +97,11 @@ for key in place_dict:
     target_pos2 = [0.2, -0.55, 0.15]
   
 box_count = 1
-'''
+```
 
 Then, it iterates through each object in each color. First, calculating the joint angles needed to reach the object, then moves the robot arm above the object so that it does not collide with anything on the table. It goes down, picks up the objects and attaches it to the gripper. To avoid any further collisons, it moves to the home position, before moving to the previously calculated target position. Then it detaches the objects, lifts the gripper up and again returns to the home position. Then this cycle is repeated until all the objects are sorted.
 
-'''python
+```python
 modified_target_list = box.copy()
 modified_target_list[2] = modified_target_list[2]+0.085
 
@@ -138,4 +138,4 @@ moveit_commander.set_gripper("open")
 moveit_commander.go_to_named_target("home")
 
 box_count = box_count + 1
-'''
+```
